@@ -9,3 +9,7 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Atalho local de testes do autor
+GERAR_EXEMPLO.bat
+exemplos/

@@ -73,6 +73,8 @@ class Orcamento:
     prazo: str
     validade_dias: int = 10
     emitido_em: date = field(default_factory=date.today)
+    emissor: str = "Prestador de Serviço"
+    contato: str = ""
 
     @property
     def valor_total(self) -> float:
@@ -96,8 +98,15 @@ def criar_orcamento(
     valor_hora: str,
     prazo: str,
     validade_dias: int = 10,
+    emissor: str = "",
+    contato: str = "",
 ) -> Orcamento:
-    """Valida os textos digitados e devolve um Orcamento pronto para usar."""
+    """
+    Valida os textos digitados e devolve um Orcamento pronto para usar.
+
+    emissor e contato são de quem EMITE o orçamento (você ou sua empresa).
+    São opcionais: se ficarem vazios, o PDF mostra "Prestador de Serviço".
+    """
     cliente, projeto, prazo = cliente.strip(), projeto.strip(), prazo.strip()
 
     if not projeto:
@@ -114,6 +123,8 @@ def criar_orcamento(
         valor_hora=ler_numero(valor_hora, "Valor da hora"),
         prazo=prazo,
         validade_dias=validade_dias,
+        emissor=emissor.strip() or "Prestador de Serviço",
+        contato=contato.strip(),
     )
 
 
@@ -147,6 +158,7 @@ def nome_do_arquivo(orc: Orcamento) -> str:
 def resumo_texto(orc: Orcamento) -> str:
     """Resumo para conferir na tela antes de gerar o PDF."""
     linhas = [
+        f"Emitido por     : {orc.emissor}" + (f" ({orc.contato})" if orc.contato else ""),
         f"Orçamento nº    : {orc.numero}",
         f"Cliente         : {orc.cliente}",
         f"Projeto         : {orc.projeto}",
@@ -169,12 +181,7 @@ AZUL_CLARO = (232, 238, 247)
 CINZA = (90, 90, 90)
 
 
-def gerar_pdf(
-    orc: Orcamento,
-    pasta_saida: str | Path = ".",
-    empresa: str = "Thiago de Mattos",
-    contato: str = "thiagomattos.tech@gmail.com",
-) -> Path:
+def gerar_pdf(orc: Orcamento, pasta_saida: str | Path = ".") -> Path:
     """Desenha o orçamento em uma página A4 e devolve o caminho do arquivo."""
     from fpdf import FPDF  # importado aqui para os testes rodarem sem o fpdf2
     from fpdf.enums import XPos, YPos
@@ -184,15 +191,16 @@ def gerar_pdf(
     pdf.add_page()
     largura = pdf.w - pdf.l_margin - pdf.r_margin
 
-    # Cabeçalho: faixa azul com o nome de quem emite
+    # Cabeçalho: faixa azul com o nome (e o contato, se houver) de quem emite
     pdf.set_fill_color(*AZUL)
     pdf.rect(0, 0, pdf.w, 32, style="F")
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 18)
-    pdf.set_xy(pdf.l_margin, 9)
-    pdf.cell(largura, 9, empresa, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(largura, 6, contato, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_xy(pdf.l_margin, 9 if orc.contato else 12)
+    pdf.cell(largura, 9, orc.emissor, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    if orc.contato:
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(largura, 6, orc.contato, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     # Título e dados do documento
     pdf.set_text_color(0, 0, 0)
@@ -265,3 +273,58 @@ def gerar_pdf(
     caminho = pasta / nome_do_arquivo(orc)
     pdf.output(str(caminho))
     return caminho
+
+
+# ----------------------------------------------------------------------------
+# 4. Uso pelo terminal: python orcamento.py
+# ----------------------------------------------------------------------------
+
+
+def _perguntar_texto(pergunta: str, obrigatorio: bool) -> str:
+    """Repete a pergunta até receber um texto (quando o campo é obrigatório)."""
+    while True:
+        resposta = input(pergunta).strip()
+        if resposta or not obrigatorio:
+            return resposta
+        print("  -> Este campo é obrigatório.")
+
+
+def _perguntar_numero(pergunta: str, campo: str) -> str:
+    """Repete a pergunta até receber um número válido (aceita 350,50)."""
+    while True:
+        resposta = input(pergunta)
+        try:
+            ler_numero(resposta, campo)
+            return resposta
+        except ErroDeValidacao as erro:
+            print(f"  -> {erro}")
+
+
+def main() -> None:
+    """Pergunta os dados no terminal, mostra o resumo e gera o PDF."""
+    print("=" * 45)
+    print("  GERADOR DE ORÇAMENTO EM PDF")
+    print("=" * 45)
+    emissor = _perguntar_texto("Seu nome ou empresa (quem emite): ", obrigatorio=False)
+    contato = _perguntar_texto("Seu contato (e-mail/telefone, opcional): ", obrigatorio=False)
+
+    while True:
+        print()
+        orc = criar_orcamento(
+            emissor=emissor,
+            contato=contato,
+            cliente=_perguntar_texto("Nome do cliente (opcional): ", obrigatorio=False),
+            projeto=_perguntar_texto("Descrição do projeto: ", obrigatorio=True),
+            horas=_perguntar_numero("Horas previstas: ", "Horas previstas"),
+            valor_hora=_perguntar_numero("Valor da hora (R$): ", "Valor da hora"),
+            prazo=_perguntar_texto("Prazo estimado (ex.: 3 meses): ", obrigatorio=True),
+        )
+        print("\n" + resumo_texto(orc) + "\n")
+        if input("Gerar o PDF? (s/n): ").strip().lower().startswith("s"):
+            print(f"PDF salvo em: {gerar_pdf(orc, pasta_saida='orcamentos').resolve()}")
+        if not input("\nFazer outro orçamento? (s/n): ").strip().lower().startswith("s"):
+            break
+
+
+if __name__ == "__main__":
+    main()

@@ -33,10 +33,10 @@ prazo                campos vazios               total em R$ e validade
 
 ![Exemplo de orçamento gerado pelo projeto](exemplo-orcamento.png)
 
-*Exemplo real gerado com 350 h × R$ 350,00.*
+*Exemplo real gerado pelo projeto: 350 h × R$ 350,00.*
 
 
-- Cabeçalho com nome e contato de quem emite
+- Cabeçalho com o nome e o contato de **quem emite** (preenchidos por você: qualquer pessoa ou empresa pode usar)
 - Número do orçamento e data de emissão
 - Tabela com cliente, descrição do projeto, horas, valor da hora e prazo
 - **Valor total em destaque**
@@ -50,7 +50,31 @@ prazo                campos vazios               total em R$ e validade
 | Só aceitava ponto como decimal | Aceita vírgula e separador de milhar |
 | Dependia de uma imagem de fundo e de coordenadas fixas | Layout desenhado em código |
 | Arquivo sempre com o mesmo nome | Nome com projeto e data, sem sobrescrever |
+| Dados do autor fixos no código | Nome e contato de quem emite são campos preenchíveis |
+| Só rodava dentro do Jupyter | Também roda no terminal ou com dois cliques no Windows |
 | Tudo dentro do notebook | Módulo reutilizável + testes automatizados |
+
+## 🖱️ Uso rápido no Windows (sem Jupyter)
+
+Com o Python instalado, dê **dois cliques em `gerar_orcamento.bat`**. Ele instala a dependência e abre o gerador no terminal, que pergunta os dados um por um, avisa na hora se algo estiver errado e salva o PDF na pasta `orcamentos/`.
+
+```
+Seu nome ou empresa (quem emite): Ana Souza Design
+Seu contato (e-mail/telefone, opcional): ana@exemplo.com
+
+Nome do cliente (opcional): Cliente X
+Descrição do projeto: Site institucional
+Horas previstas: abc
+  -> Horas previstas: 'abc' não é um número válido (ex.: 350 ou 350,50).
+Horas previstas: 40
+Valor da hora (R$): 85,50
+Prazo estimado (ex.: 3 meses): 2 semanas
+
+VALOR TOTAL     : R$ 3.420,00
+Gerar o PDF? (s/n): s
+```
+
+Em outros sistemas: `python orcamento.py`.
 
 ## 🚀 Como executar
 
@@ -70,7 +94,10 @@ Ou direto em Python:
 ```python
 from orcamento import criar_orcamento, gerar_pdf
 
-orc = criar_orcamento("Empresa Exemplo", "Desenvolvimento Python", "350", "350", "6 meses")
+orc = criar_orcamento(
+    "Empresa Exemplo", "Desenvolvimento Python", "350", "350", "6 meses",
+    emissor="Sua Empresa Ltda.", contato="contato@suaempresa.com.br",
+)
 print(gerar_pdf(orc, pasta_saida="orcamentos"))
 ```
 
@@ -87,7 +114,8 @@ python -m pytest
 
 ```
 gerador-orcamento-pdf/
-├── orcamento.py                # regras, validação e geração do PDF
+├── orcamento.py                # regras, validação, PDF e modo terminal
+├── gerar_orcamento.bat         # atalho de dois cliques (Windows)
 ├── Gerador_de_Orcamento.ipynb  # passo a passo interativo
 ├── tests/
 │   └── test_orcamento.py       # testes com pytest
@@ -99,7 +127,8 @@ gerador-orcamento-pdf/
 ## 🔭 Próximos passos
 
 - Vários itens por orçamento (tabela com linhas de serviço)
-- Logo da empresa e dados de contato configuráveis
+- Logo da empresa no cabeçalho
+- Tela no navegador com Streamlit, para usar sem instalar Python
 - Envio do PDF por e-mail ou integração com n8n
 
 ## 👤 Autor
