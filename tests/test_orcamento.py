@@ -72,3 +72,15 @@ def test_criar_orcamento_valida_campos_de_texto():
     orc = criar_orcamento("", "Projeto", "10,5", "100", "1 mês")
     assert orc.cliente == "Cliente não informado"
     assert orc.valor_total == 1050.0
+
+
+def test_emissor_e_contato_sao_configuraveis():
+    padrao = criar_orcamento("Cliente", "Projeto", "10", "100", "1 mês")
+    assert padrao.emissor == "Prestador de Serviço"
+    assert padrao.contato == ""
+    orc = criar_orcamento(
+        "Cliente", "Projeto", "10", "100", "1 mês",
+        emissor="  Ana Souza Design  ", contato="ana@exemplo.com",
+    )
+    assert orc.emissor == "Ana Souza Design"
+    assert orc.contato == "ana@exemplo.com"
