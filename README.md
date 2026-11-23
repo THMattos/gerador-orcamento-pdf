@@ -31,6 +31,11 @@ prazo                campos vazios               total em R$ e validade
 
 ## 🧾 O que vai no PDF
 
+![Exemplo de orçamento gerado pelo projeto](exemplo-orcamento.png)
+
+*Exemplo real gerado com 350 h × R$ 350,00.*
+
+
 - Cabeçalho com nome e contato de quem emite
 - Número do orçamento e data de emissão
 - Tabela com cliente, descrição do projeto, horas, valor da hora e prazo
@@ -86,6 +91,7 @@ gerador-orcamento-pdf/
 ├── Gerador_de_Orcamento.ipynb  # passo a passo interativo
 ├── tests/
 │   └── test_orcamento.py       # testes com pytest
+├── exemplo-orcamento.png       # prévia do PDF gerado
 ├── requirements.txt
 └── README.md
 ```
